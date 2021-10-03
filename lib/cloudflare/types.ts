@@ -21,7 +21,9 @@ export type CloudflareResponse = {
 
 type CloudflareDnsRecord = {
   id: string;
+  // deno-lint-ignore camelcase
   zone_id: string;
+  // deno-lint-ignore camelcase
   zone_nme: string;
   name: string;
   type: string;
@@ -31,11 +33,16 @@ type CloudflareDnsRecord = {
   ttl: number;
   locked: boolean;
   meta: {
+    // deno-lint-ignore camelcase
     auto_added: boolean;
+    // deno-lint-ignore camelcase
     managed_by_apps: boolean;
+    // deno-lint-ignore camelcase
     managed_by_argo_tunnel: boolean;
     source: string;
   };
+  // deno-lint-ignore camelcase
   created_on: Date;
+  // deno-lint-ignore camelcase
   modified_on: Date;
 };

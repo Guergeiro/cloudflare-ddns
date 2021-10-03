@@ -7,7 +7,7 @@ import {
 import { CloudflareDnsError } from "./general/CloudflareDnsError.ts";
 import { getPublicIp } from "./general/utils.ts";
 
-const { args } = Deno;
+const { args, exit, writeTextFile } = Deno;
 
 export async function main(configArgs: string[]) {
   const config = await getCloudflareConfig(configArgs);
@@ -34,7 +34,7 @@ export async function main(configArgs: string[]) {
     return element.name.startsWith(aRecord!);
   });
   if (dnsRecord == null) {
-    throw new CloudflareDnsError(1);
+    throw new CloudflareDnsError(1, "No type A record provided.");
   }
   await patchCloudflareRecord(
     new URL(`${cloudflareUrl}/${zoneId}/dns_records/${dnsRecord.id}`),
@@ -46,5 +46,18 @@ export async function main(configArgs: string[]) {
 }
 
 if (import.meta.main === true) {
-  await main(args);
+  try {
+    await main(args);
+  } catch (err) {
+    const output: string[] = [];
+    output.push(err.message);
+    if (err instanceof CloudflareDnsError) {
+      output.push(`This was an error expected by cloudflare-ddns.`);
+    } else {
+      output.push(`This was not an error expected by cloudflare-ddns.`);
+    }
+    output.join("\n");
+    await writeTextFile(`./${new Date().toISOString()}.log`, err.stack);
+    exit(1);
+  }
 }

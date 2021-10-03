@@ -1,4 +1,4 @@
-export const publicIpUrl = "https://ipecho.net/plain"
+export const publicIpUrl = "https://ipecho.net/plain";
 
 export function parseKeyValueString(str: string[]) {
   const m = new Map<string, string>();

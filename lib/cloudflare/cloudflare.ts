@@ -13,6 +13,7 @@ export async function getCloudflareData(url: URL, headers: Headers) {
   const json = await fetchCloudflare<CloudflareGetResponse>(
     fetch(url, { headers: headers }),
   );
+  // deno-lint-ignore camelcase
   const { result, result_info } = json;
   if (result_info.page !== result_info.total_pages) {
     url.searchParams.set("page", `${result_info.page += 1}`);
@@ -32,7 +33,6 @@ export async function patchCloudflareRecord(
     body: body,
   }));
 
-  console.log(json);
   return json;
 }
 
@@ -54,20 +54,23 @@ export async function getCloudflareConfig(configArgs: string[]) {
 }
 
 function parseFile(txt: string) {
+  function errorMessage(str: string) {
+    return `No config with ${str} provided.`;
+  }
   const lines = txt.split("\n");
   const m = parseKeyValueString(lines);
 
   if (m.has("x-auth-key") === false) {
-    throw new CloudflareDnsError(1);
+    throw new CloudflareDnsError(1, errorMessage("auth key"));
   }
   if (m.has("x-auth-email") === false) {
-    throw new CloudflareDnsError(1);
+    throw new CloudflareDnsError(1, errorMessage("auth email"));
   }
   if (m.has("zone-id") === false) {
-    throw new CloudflareDnsError(1);
+    throw new CloudflareDnsError(1, errorMessage("zone id"));
   }
   if (m.has("a-record") === false) {
-    throw new CloudflareDnsError(1);
+    throw new CloudflareDnsError(1, errorMessage("a record"));
   }
   return m;
 }
@@ -79,10 +82,10 @@ function parseArguments(args: string[]) {
 async function getConfigFile(args: string[]) {
   const config = parseArguments(args);
   if (config == null) {
-    throw new Error("No config specified.");
+    throw new CloudflareDnsError(1, "No config specified.");
   }
   if (config.length === 0) {
-    throw new Error("No config specified.");
+    throw new CloudflareDnsError(1, "No config specified.");
   }
   const txt = await readTextFile(config);
   return txt;
