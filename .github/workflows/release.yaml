@@ -29,7 +29,7 @@ jobs:
       - name: Build | Compile
         run: |
           mkdir ~/target
-          deno compile --allow-read --allow-net --target ${{ matrix.target }} --output ~/target/cloudflare-ddns-${{ matrix.target }}-${{ steps.pretty_tag.outputs.VERSION }} lib/main.ts
+          deno compile --allow-read --allow-net --allow-write --target ${{ matrix.target }} --output ~/target/cloudflare-ddns-${{ matrix.target }}-${{ steps.pretty_tag.outputs.VERSION }} lib/main.ts
 
       - name: Build | Upload artifacts
         uses: actions/upload-artifact@v2
