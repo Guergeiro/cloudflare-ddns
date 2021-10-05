@@ -1,5 +1,5 @@
 import { parseKeyValueString } from "../general/utils.ts";
-import { CloudflareDnsError } from "../general/CloudflareDnsError.ts";
+import { CloudflareDnsError } from "./CloudflareDnsError.ts";
 import {
   CloudflareGetResponse,
   CloudflarePatchResponse,
@@ -42,13 +42,13 @@ async function fetchCloudflare<G extends CloudflareResponse>(
   const response = await request;
   const json: G = await response.json();
   if (json.success === false) {
-    throw new CloudflareDnsError(1, json.errors.join("\n"));
+    throw new CloudflareDnsError(json.errors.join("\n"));
   }
   return json;
 }
 
-export async function getCloudflareConfig(configArgs: string[]) {
-  const file = await getConfigFile(configArgs);
+export async function getCloudflareConfig(fileUrl: string) {
+  const file = await readTextFile(fileUrl);
   const config = parseFile(file);
   return config;
 }
@@ -61,32 +61,16 @@ function parseFile(txt: string) {
   const m = parseKeyValueString(lines);
 
   if (m.has("x-auth-key") === false) {
-    throw new CloudflareDnsError(1, errorMessage("auth key"));
+    throw new CloudflareDnsError(errorMessage("auth key"));
   }
   if (m.has("x-auth-email") === false) {
-    throw new CloudflareDnsError(1, errorMessage("auth email"));
+    throw new CloudflareDnsError(errorMessage("auth email"));
   }
   if (m.has("zone-id") === false) {
-    throw new CloudflareDnsError(1, errorMessage("zone id"));
+    throw new CloudflareDnsError(errorMessage("zone id"));
   }
   if (m.has("a-record") === false) {
-    throw new CloudflareDnsError(1, errorMessage("a record"));
+    throw new CloudflareDnsError(errorMessage("a record"));
   }
   return m;
-}
-
-function parseArguments(args: string[]) {
-  return parseKeyValueString(args).get("config");
-}
-
-async function getConfigFile(args: string[]) {
-  const config = parseArguments(args);
-  if (config == null) {
-    throw new CloudflareDnsError(1, "No config specified.");
-  }
-  if (config.length === 0) {
-    throw new CloudflareDnsError(1, "No config specified.");
-  }
-  const txt = await readTextFile(config);
-  return txt;
 }

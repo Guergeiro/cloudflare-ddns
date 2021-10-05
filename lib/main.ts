@@ -4,13 +4,13 @@ import {
   getCloudflareData,
   patchCloudflareRecord,
 } from "./cloudflare/cloudflare.ts";
-import { CloudflareDnsError } from "./general/CloudflareDnsError.ts";
+import { CloudflareDnsError } from "./cloudflare/CloudflareDnsError.ts";
 import { getPublicIp } from "./general/utils.ts";
+import { version } from "./general/version.ts";
+import { Command } from "../deps.ts";
 
-const { args, exit, writeTextFile } = Deno;
-
-export async function main(configArgs: string[]) {
-  const config = await getCloudflareConfig(configArgs);
+export async function cloudflareDns(configUrl: string) {
+  const config = await getCloudflareConfig(configUrl);
   const xAuthKey = config.get("x-auth-key");
   const xAuthEmail = config.get("x-auth-email");
   const zoneId = config.get("zone-id");
@@ -34,7 +34,7 @@ export async function main(configArgs: string[]) {
     return element.name.startsWith(aRecord!);
   });
   if (dnsRecord == null) {
-    throw new CloudflareDnsError(1, "No type A record provided.");
+    throw new CloudflareDnsError("No type A record provided.");
   }
   await patchCloudflareRecord(
     new URL(`${cloudflareUrl}/${zoneId}/dns_records/${dnsRecord.id}`),
@@ -45,9 +45,23 @@ export async function main(configArgs: string[]) {
   );
 }
 
+async function main() {
+  const { options } = await new Command().name("cloudflare-ddns").description(
+    "Automatically update cloudflare A records to work like a ddns",
+  ).version(version).option(
+    "-c, --config [path/to/config]",
+    "Path to config file.",
+    {
+      default: `${Deno.cwd()}/config`,
+    },
+  ).parse(Deno.args);
+
+  await cloudflareDns(options.config);
+}
+
 if (import.meta.main === true) {
   try {
-    await main(args);
+    await main();
   } catch (err) {
     const output: string[] = [];
     output.push(err.message);
@@ -57,7 +71,7 @@ if (import.meta.main === true) {
       output.push(`This was not an error expected by cloudflare-ddns.`);
     }
     output.join("\n");
-    await writeTextFile(`./${new Date().toISOString()}.log`, err.stack);
-    exit(1);
+    await Deno.writeTextFile(`./${new Date().toISOString()}.log`, err.stack);
+    Deno.exit(1);
   }
 }
