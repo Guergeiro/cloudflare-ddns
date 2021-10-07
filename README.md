@@ -36,7 +36,7 @@ That's a good solution for most people, except for two main reasons:
 2. You already have a DNS provider and you wish to keep under the same domain.
 
 So yeah, I'm point number 2. And my DNS provider is
-[Cloudflare](https://www.cloudflare.com/) ence the purpose of this script.
+[Cloudflare](https://www.cloudflare.com/) hence the purpose of this script.
 
 ## Table of Contents
 
@@ -56,7 +56,7 @@ and download the binary and run it.
 Either clone this repository or get the source code from the
 [Releases](https://github.com/Guergeiro/cloudflare-ddns/releases).
 
-_Optional:_ `deno install --allow-net --allow-read lib/main.ts`
+_Optional:_ `deno install --allow-net --allow-read --allow-write lib/main.ts`
 
 ### Using
 
@@ -72,7 +72,7 @@ a-record=test
 Then you need to run the script like this:
 
 ```
-cloudflare-ddns config=/path/to/my/config
+cloudflare-ddns --config path/to/my/config
 ```
 
 ### Dependency
@@ -81,11 +81,11 @@ You can also this as a dependency of your Deno scripts. Take a look at the what
 it [exports](./mod.ts).
 
 ```ts
-import { CloudflareDns, CloudflareDnsError, version } from "mod.ts"
+import { CloudflareDns, CloudflareDnsError, CloudflareDnsVersion } from "mod.ts"
 
 console.log(`The current version is ${version}`).
 
-const myConfig = "config=/path/to/my/config"
+const myConfig = "path/to/my/config"
 
 CloudflareDns(myConfig).then(function () {
   console.log("We ran successfully");
